@@ -41,7 +41,8 @@ namespace HaulAnalyzer
                     AGDImporter Importer = new AGDImporter();
                     AGDataSet DataSet = Importer.Load(ImportFileDialog.FileName);
 
-                    Bitmap Map = CutFillMap.Generate(DataSet);
+                    CutFillMap CFMap = new CutFillMap(DataSet, 800, 800);
+                    Bitmap Map = CFMap.Update();
                     CutFillMapDisp.Image = Map;
                 }
             }

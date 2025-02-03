@@ -9,17 +9,26 @@ namespace HaulAnalyzer
     internal class AGDataSet
     {
         public List<AGDEntry> Data;
-        public double? MasterBenchmarkLatitude;
-        public double? MasterBenchmarkLongitude;
+        public AGDEntry MasterBenchmark;
+        public List<AGDEntry> Benchmarks;
+        public List<AGDEntry> BoundaryPoints;
 
+        private bool _ExtentsCalculated;
+        private double _MinX;
+        private double _MinY;
+        private double _MaxX;
+        private double _MaxY;
+ 
         public AGDataSet
             (
             )
         {
             Data = new List<AGDEntry>();
+            MasterBenchmark = new AGDEntry();
+            Benchmarks = new List<AGDEntry>();
+            BoundaryPoints = new List<AGDEntry>();
 
-            MasterBenchmarkLatitude = null;
-            MasterBenchmarkLongitude = null;
+            _ExtentsCalculated = false;
         }
 
         /// <summary>
@@ -37,25 +46,37 @@ namespace HaulAnalyzer
             out double MaxY
             )
         {
-            double? minx = null;
-            double? miny = null;
-            double? maxx = null;
-            double? maxy = null;
-
-            foreach (AGDEntry Entry in Data)
+            if (!_ExtentsCalculated)
             {
-                if (!minx.HasValue || Entry.UTMEasting < minx) minx = Entry.UTMEasting;
-                if (!maxx.HasValue || Entry.UTMEasting > maxx) maxx = Entry.UTMEasting;
+                double? minx = null;
+                double? miny = null;
+                double? maxx = null;
+                double? maxy = null;
 
-                if (!miny.HasValue || Entry.UTMNorthing < miny) miny = Entry.UTMNorthing;
-                if (!maxy.HasValue || Entry.UTMNorthing > maxy) maxy = Entry.UTMNorthing;
+                foreach (AGDEntry Entry in Data)
+                {
+                    if (!minx.HasValue || Entry.UTMEasting < minx) minx = Entry.UTMEasting;
+                    if (!maxx.HasValue || Entry.UTMEasting > maxx) maxx = Entry.UTMEasting;
+
+                    if (!miny.HasValue || Entry.UTMNorthing < miny) miny = Entry.UTMNorthing;
+                    if (!maxy.HasValue || Entry.UTMNorthing > maxy) maxy = Entry.UTMNorthing;
+                }
+
+                _MinX = MinX = minx.HasValue ? minx.Value : 0.0;
+                _MaxX = MaxX = maxx.HasValue ? maxx.Value : 0.0;
+
+                _MinY = MinY = miny.HasValue ? miny.Value : 0.0;
+                _MaxY = MaxY = maxy.HasValue ? maxy.Value : 0.0;
+
+                _ExtentsCalculated = true;
             }
-
-            MinX = minx.HasValue ? minx.Value : 0.0;
-            MaxX = maxx.HasValue ? maxx.Value : 0.0;
-
-            MinY = miny.HasValue ? miny.Value : 0.0;
-            MaxY = maxy.HasValue ? maxy.Value : 0.0;
+            else
+            {
+                MinX = _MinX;
+                MaxX = _MaxX;
+                MinY = _MinY;
+                MaxY = _MaxY;
+            }
         }
     }
 }

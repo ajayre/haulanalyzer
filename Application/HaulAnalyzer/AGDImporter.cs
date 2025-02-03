@@ -61,16 +61,31 @@ namespace HaulAnalyzer
 
                     if (Code.Trim() == "0MB")
                     {
-                        DataSet.MasterBenchmarkLatitude = double.Parse(LatStr);
-                        DataSet.MasterBenchmarkLongitude = double.Parse(LonStr);
                     }
 
                     AGDEntry Entry = Parse(LatStr, LonStr, ExistingEleStr, ProposedEleStr, CutFillStr, Code, Comments, FileName, LineNumber);
-
                     if (Entry != null)
                     {
                         Geo.LLtoUTM(Entry.Lat, Entry.Lon, out Entry.UTMNorthing, out Entry.UTMEasting, out Entry.UTMZone);
-                        DataSet.Data.Add(Entry);
+
+                        switch (Entry.EntryType)
+                        {
+                            case AGDEntryType.MasterBenchmark:
+                                DataSet.MasterBenchmark = Entry;
+                                break;
+
+                            case AGDEntryType.Benchmark:
+                                DataSet.Benchmarks.Add(Entry);
+                                break;
+
+                            case AGDEntryType.Boundary:
+                                DataSet.BoundaryPoints.Add(Entry);
+                                break;
+
+                            case AGDEntryType.GridPoint:
+                                DataSet.Data.Add(Entry);
+                                break;
+                        }
                     }
                 }
             }
@@ -108,18 +123,35 @@ namespace HaulAnalyzer
             {
                 AGDEntry Entry = new AGDEntry();
 
-                if (ExistingEleStr.Trim().Length == 0)
-                    ExistingEleStr = ProposedEleStr;
-
-                if (ProposedEleStr.Trim().Length == 0) return null;
-
-                Entry.Lat = double.Parse(LatitudeStr);
-                Entry.Lon = double.Parse(LongitudeStr);
-                Entry.ExistingEle = double.Parse(ExistingEleStr);
-                Entry.ProposedEle = double.Parse(ProposedEleStr);
-                Entry.CutFillHeight = double.Parse(CutFillHeightStr);
                 Entry.Code = Code.Trim();
                 Entry.Comments = Comments.Trim();
+                Entry.Lat = double.Parse(LatitudeStr);
+                Entry.Lon = double.Parse(LongitudeStr);
+
+                if (Code == "3GRD")
+                {
+                    Entry.EntryType = AGDEntryType.GridPoint;
+
+                    Entry.CutFillHeight = double.Parse(CutFillHeightStr);
+
+                    if (ExistingEleStr.Trim().Length == 0)
+                        ExistingEleStr = ProposedEleStr;
+
+                    Entry.ExistingEle = double.Parse(ExistingEleStr);
+                    Entry.ProposedEle = double.Parse(ProposedEleStr);
+                }
+                else if (Code == "2PER")
+                {
+                    Entry.EntryType = AGDEntryType.Boundary;
+                }
+                else if (Code == "0MB")
+                {
+                    Entry.EntryType = AGDEntryType.MasterBenchmark;
+                }
+                else if (Code.StartsWith("0BM"))
+                {
+                    Entry.EntryType = AGDEntryType.Benchmark;
+                }
 
                 return Entry;
             }
