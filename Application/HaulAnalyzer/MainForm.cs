@@ -39,7 +39,10 @@ namespace HaulAnalyzer
                 if (ImportFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     AGDImporter Importer = new AGDImporter();
-                    Importer.Load(ImportFileDialog.FileName);
+                    AGDataSet DataSet = Importer.Load(ImportFileDialog.FileName);
+
+                    Bitmap Map = CutFillMap.Generate(DataSet);
+                    CutFillMapDisp.Image = Map;
                 }
             }
             catch (Exception Exc)

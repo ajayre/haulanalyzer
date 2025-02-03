@@ -34,7 +34,9 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.ImportFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.CutFillMapDisp = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.CutFillMapDisp)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -81,17 +83,31 @@
             this.ImportFileDialog.DefaultExt = "agd";
             this.ImportFileDialog.Filter = "AGPS Design Files|*.agd|All Files|*.*";
             // 
+            // CutFillMapDisp
+            // 
+            this.CutFillMapDisp.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.CutFillMapDisp.Location = new System.Drawing.Point(12, 27);
+            this.CutFillMapDisp.Name = "CutFillMapDisp";
+            this.CutFillMapDisp.Size = new System.Drawing.Size(776, 411);
+            this.CutFillMapDisp.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.CutFillMapDisp.TabIndex = 1;
+            this.CutFillMapDisp.TabStop = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.CutFillMapDisp);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "Haul Analyzer";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.CutFillMapDisp)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -105,6 +121,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.OpenFileDialog ImportFileDialog;
+        private System.Windows.Forms.PictureBox CutFillMapDisp;
     }
 }
 

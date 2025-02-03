@@ -49,7 +49,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AGDataSet.cs" />
+    <Compile Include="AGDEntry.cs" />
     <Compile Include="AGDImporter.cs" />
+    <Compile Include="CutFillMap.cs" />
     <Compile Include="Geo.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

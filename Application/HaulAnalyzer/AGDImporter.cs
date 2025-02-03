@@ -8,83 +8,24 @@ using LumenWorks.Framework.IO.Csv;
 
 namespace HaulAnalyzer
 {
-    internal class AGDEntry
-    {
-        public double Lat;
-        public double Lon;
-        public double ExistingEle;
-        public double ProposedEle;
-        public double CutFillHeight;
-        public string Code;
-        public string Comments;
-
-        public double UTMNorthing;
-        public double UTMEasting;
-        public string UTMZone;
-
-        public AGDEntry
-            (
-            double Lat,
-            double Lon,
-            double ExistingEle,
-            double ProposedEle,
-            double CutFillHeight,
-            string Code,
-            string Comments
-            )
-        {
-            this.Lat           = Lat;
-            this.Lon           = Lon;
-            this.ExistingEle   = ExistingEle;
-            this.ProposedEle   = ProposedEle;
-            this.CutFillHeight = CutFillHeight;
-            this.Code          = Code;
-            this.Comments      = Comments;
-        }
-
-        public AGDEntry
-            (
-            )
-        {
-        }
-
-        public override string ToString()
-        {
-            return string.Format("{0},{1}: {2}", Lat, Lon, CutFillHeight);
-        }
-    }
-
     internal class AGDImporter
     {
-        public List<AGDEntry> Entries = new List<AGDEntry>();
-        public double? MasterBenchmarkLatitude;
-        public double? MasterBenchmarkLongitude;
-
-        public AGDImporter
-            (
-            )
-        {
-            MasterBenchmarkLatitude = null;
-            MasterBenchmarkLongitude = null;
-        }
-
         /// <summary>
         /// Loads in an AGD file
         /// </summary>
         /// <param name="FileName">Path and name of file</param>
-        public void Load
+        /// <returns>Data set</returns>
+        public AGDataSet Load
             (
             string FileName
             )
         {
+            AGDataSet DataSet = new AGDataSet();
+
             if (!File.Exists(FileName))
             {
                 throw new Exception(String.Format("Input file {0} not found", FileName));
             }
-
-            Entries.Clear();
-            MasterBenchmarkLatitude = null;
-            MasterBenchmarkLongitude = null;
 
             char Delimiter = ',';
 
@@ -110,15 +51,31 @@ namespace HaulAnalyzer
                 {
                     LineNumber++;
 
-                    AGDEntry Entry = Parse(Reader[0], Reader[1], Reader[2], Reader[3], Reader[4], Reader[5], Reader[6], FileName, LineNumber);
+                    string LatStr         = Reader[0].Trim();
+                    string LonStr         = Reader[1].Trim();
+                    string ExistingEleStr = Reader[2].Trim();
+                    string ProposedEleStr = Reader[3].Trim();
+                    string CutFillStr     = Reader[4].Trim();
+                    string Code           = Reader[5];
+                    string Comments       = Reader[6];
+
+                    if (Code.Trim() == "0MB")
+                    {
+                        DataSet.MasterBenchmarkLatitude = double.Parse(LatStr);
+                        DataSet.MasterBenchmarkLongitude = double.Parse(LonStr);
+                    }
+
+                    AGDEntry Entry = Parse(LatStr, LonStr, ExistingEleStr, ProposedEleStr, CutFillStr, Code, Comments, FileName, LineNumber);
 
                     if (Entry != null)
                     {
                         Geo.LLtoUTM(Entry.Lat, Entry.Lon, out Entry.UTMNorthing, out Entry.UTMEasting, out Entry.UTMZone);
-                        Entries.Add(Entry);
+                        DataSet.Data.Add(Entry);
                     }
                 }
             }
+
+            return DataSet;
         }
 
         /// <summary>
@@ -150,13 +107,6 @@ namespace HaulAnalyzer
             try
             {
                 AGDEntry Entry = new AGDEntry();
-
-                if (Code.Trim() == "0MB")
-                {
-                    MasterBenchmarkLatitude = double.Parse(LatitudeStr);
-                    MasterBenchmarkLongitude = double.Parse(LongitudeStr);
-                    return null;
-                }
 
                 if (ExistingEleStr.Trim().Length == 0)
                     ExistingEleStr = ProposedEleStr;

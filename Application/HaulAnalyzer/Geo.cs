@@ -9,14 +9,15 @@ namespace HaulAnalyzer
     internal class Geo
     {
         /// <summary>
+        /// Converts lat/lon to UTM coordinates
+        /// WGS-84
         /// Adapted from http://www.gpsy.com/gpsinfo/geotoutm/
         /// </summary>
-        /// <param name="ReferenceEllipsoid"></param>
-        /// <param name="Lat"></param>
-        /// <param name="Long"></param>
-        /// <param name="UTMNorthing"></param>
-        /// <param name="UTMEasting"></param>
-        /// <param name="UTMZone"></param>
+        /// <param name="Lat">Latitude to convert</param>
+        /// <param name="Long">Longitude to convert</param>
+        /// <param name="UTMNorthing">On return set to UTM northing</param>
+        /// <param name="UTMEasting">On return set to UTM easting</param>
+        /// <param name="UTMZone">On return set to UTM zone</param>
         static public void LLtoUTM
             (
             double Lat,
@@ -92,6 +93,12 @@ namespace HaulAnalyzer
                 UTMNorthing += 10000000.0; //10000000 meter offset for southern hemisphere
         }
 
+        /// <summary>
+        /// Converts latitude to a UTM letter designator
+        /// Adapted from http://www.gpsy.com/gpsinfo/geotoutm/
+        /// </summary>
+        /// <param name="Lat">Latitude to convert</param>
+        /// <returns>UTM letter designator</returns>
         static private char UTMLetterDesignator
             (
             double Lat
@@ -127,6 +134,16 @@ namespace HaulAnalyzer
             return LetterDesignator;
         }
 
+        /// <summary>
+        /// Converts UTM coordinates to lat/lon
+        /// WGS-84
+        /// Adapted from http://www.gpsy.com/gpsinfo/geotoutm/
+        /// </summary>
+        /// <param name="UTMNorthing">UTM northing</param>
+        /// <param name="UTMEasting">UTM easting</param>
+        /// <param name="UTMZone">UTM zone</param>
+        /// <param name="Lat">On return set to latitude</param>
+        /// <param name="Long">On return set to longitude</param>
         static public void UTMtoLL
             (
             double UTMNorthing,
