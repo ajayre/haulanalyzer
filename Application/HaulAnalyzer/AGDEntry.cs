@@ -29,10 +29,16 @@ namespace HaulAnalyzer
         public double UTMEasting;
         public string UTMZone;
 
+        public AGDEntry North;
+        public AGDEntry South;
+        public AGDEntry East;
+        public AGDEntry West;
+
         public AGDEntry
             (
             )
         {
+            North = South = East = West = null;
         }
 
         public override string ToString()

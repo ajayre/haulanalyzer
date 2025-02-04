@@ -14,10 +14,12 @@ namespace HaulAnalyzer
         /// Loads in an AGD file
         /// </summary>
         /// <param name="FileName">Path and name of file</param>
+        /// <param name="GridSize">Size of grid in meters (from Optisurface)</param>
         /// <returns>Data set</returns>
         public AGDataSet Load
             (
-            string FileName
+            string FileName,
+            double GridSize
             )
         {
             AGDataSet DataSet = new AGDataSet();
@@ -66,8 +68,6 @@ namespace HaulAnalyzer
                     AGDEntry Entry = Parse(LatStr, LonStr, ExistingEleStr, ProposedEleStr, CutFillStr, Code, Comments, FileName, LineNumber);
                     if (Entry != null)
                     {
-                        Geo.LLtoUTM(Entry.Lat, Entry.Lon, out Entry.UTMNorthing, out Entry.UTMEasting, out Entry.UTMZone);
-
                         switch (Entry.EntryType)
                         {
                             case AGDEntryType.MasterBenchmark:
@@ -89,6 +89,8 @@ namespace HaulAnalyzer
                     }
                 }
             }
+
+            FindNeighbors(DataSet.Data, GridSize);
 
             return DataSet;
         }
@@ -153,11 +155,66 @@ namespace HaulAnalyzer
                     Entry.EntryType = AGDEntryType.Benchmark;
                 }
 
+                Geo.LLtoUTM(Entry.Lat, Entry.Lon, out Entry.UTMNorthing, out Entry.UTMEasting, out Entry.UTMZone);
+
                 return Entry;
             }
             catch (Exception Exc)
             {
                 throw new Exception(String.Format("Failed to parse CSV line: {1}", LineNumber, Exc.Message));
+            }
+        }
+
+        /// <summary>
+        /// Locates each neighbor of each entry
+        /// </summary>
+        /// <param name="Entries">List of entries to process</param>
+        /// <param name="GridSize">Size of grid in meters</param>
+        private void FindNeighbors
+            (
+            List<AGDEntry> Entries,
+            double GridSize
+            )
+        {
+            foreach (AGDEntry Entry in Entries)
+            {
+                foreach (AGDEntry SearchEntry in Entries)
+                {
+                    if (Entry == SearchEntry) continue;
+
+                    if ((SearchEntry.UTMEasting  >  (Entry.UTMEasting  - (GridSize * 1.5))) &&
+                        (SearchEntry.UTMEasting  <= (Entry.UTMEasting  - (GridSize * 0.5))) &&
+                        (SearchEntry.UTMNorthing >  (Entry.UTMNorthing - (GridSize * 0.5))) &&
+                        (SearchEntry.UTMNorthing <= (Entry.UTMNorthing + (GridSize * 0.5)))
+                        )
+                    {
+                        Entry.East = SearchEntry;
+                    }
+                    else if ((SearchEntry.UTMEasting  <= (Entry.UTMEasting  + (GridSize * 1.5))) &&
+                             (SearchEntry.UTMEasting  >  (Entry.UTMEasting  + (GridSize * 0.5))) &&
+                             (SearchEntry.UTMNorthing >  (Entry.UTMNorthing - (GridSize * 0.5))) &&
+                             (SearchEntry.UTMNorthing <= (Entry.UTMNorthing + (GridSize * 0.5)))
+                            )
+                    {
+                        Entry.West = SearchEntry;
+                    }
+                    else if ((SearchEntry.UTMEasting  >  (Entry.UTMEasting  - (GridSize * 0.5))) &&
+                             (SearchEntry.UTMEasting  <= (Entry.UTMEasting  + (GridSize * 0.5))) &&
+                             (SearchEntry.UTMNorthing >  (Entry.UTMNorthing + (GridSize * 0.5))) &&
+                             (SearchEntry.UTMNorthing <= (Entry.UTMNorthing + (GridSize * 1.5)))
+                            )
+                    {
+                        Entry.North = SearchEntry;
+                    }
+                    else if ((SearchEntry.UTMEasting  >  (Entry.UTMEasting  - (GridSize * 0.5))) &&
+                             (SearchEntry.UTMEasting  <= (Entry.UTMEasting  + (GridSize * 0.5))) &&
+                             (SearchEntry.UTMNorthing >  (Entry.UTMNorthing - (GridSize * 1.5))) &&
+                             (SearchEntry.UTMNorthing <= (Entry.UTMNorthing - (GridSize * 0.5)))
+                            )
+                    {
+                        Entry.South = SearchEntry;
+                    }
+                }
             }
         }
     }

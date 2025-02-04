@@ -12,19 +12,21 @@ namespace HaulAnalyzer
         private AGDataSet DataSet;
         private int MapWidthPx;
         private int MapHeightPx;
-        Bitmap Map;
-
+        private Bitmap Map;
+        private double GridSize;
 
         public CutFillMap
             (
             AGDataSet DataSet,
             int WidthPx,
-            int HeightPx
+            int HeightPx,
+            double GridSize
             )
         {
             this.DataSet = DataSet;
-            this.MapWidthPx = WidthPx;
-            this.MapHeightPx = HeightPx;
+            MapWidthPx = WidthPx;
+            MapHeightPx = HeightPx;
+            this.GridSize = GridSize;
 
             Map = new Bitmap(MapWidthPx, MapHeightPx);
         }
@@ -32,9 +34,11 @@ namespace HaulAnalyzer
         /// <summary>
         /// Updates the cut/fill map with the current data
         /// </summary>
-        /// <returns></returns>
+        /// <param name="ShowBenchmarks">true to display benchmarks</param>
+        /// <returns>Bitmap containing map</returns>
         public Bitmap Update
             (
+            bool ShowBenchmarks
             )
         {
             using (Graphics graph = Graphics.FromImage(Map))
@@ -46,7 +50,7 @@ namespace HaulAnalyzer
 
                 foreach (AGDEntry Entry in DataSet.Data)
                 {
-                    UTMToPixel(DataSet, Entry.UTMEasting, Entry.UTMNorthing, MapWidthPx, MapHeightPx, out px, out py);
+                    UTMToPixel(Entry.UTMEasting, Entry.UTMNorthing, out px, out py);
 
                     Brush PixelColor;
                     if (Entry.CutFillHeight >= 2.7 * 0.3048) PixelColor = Brushes.Violet;
@@ -60,15 +64,19 @@ namespace HaulAnalyzer
                     else PixelColor = Brushes.DarkRed;
 
                     graph.FillRectangle(PixelColor, (float)(px - 2), (float)(py - 2), 4, 4);
+                    //graph.FillRectangle(PixelColor, (float)(px - 0), (float)(py - 0), 1, 1);
                 }
 
-                UTMToPixel(DataSet, DataSet.MasterBenchmark.UTMEasting, DataSet.MasterBenchmark.UTMNorthing, MapWidthPx, MapHeightPx, out px, out py);
-                graph.FillRectangle(Brushes.Black, (float)(px - 8), (float)(py - 8), 16, 16);
-
-                foreach (AGDEntry Benchmark in DataSet.Benchmarks)
+                if (ShowBenchmarks)
                 {
-                    UTMToPixel(DataSet, Benchmark.UTMEasting, Benchmark.UTMNorthing, MapWidthPx, MapHeightPx, out px, out py);
-                    graph.FillRectangle(Brushes.Gray, (float)(px - 8), (float)(py - 8), 16, 16);
+                    UTMToPixel(DataSet.MasterBenchmark.UTMEasting, DataSet.MasterBenchmark.UTMNorthing, out px, out py);
+                    DrawBenchmark(graph, Brushes.Black, px, py);
+
+                    foreach (AGDEntry Benchmark in DataSet.Benchmarks)
+                    {
+                        UTMToPixel(Benchmark.UTMEasting, Benchmark.UTMNorthing, out px, out py);
+                        DrawBenchmark(graph, Brushes.Gray, px, py);
+                    }
                 }
             }
 
@@ -78,20 +86,14 @@ namespace HaulAnalyzer
         /// <summary>
         /// Converts a UTM coordinate into a pixel coordinate
         /// </summary>
-        /// <param name="DataSet">Set of data that contains the UTM data</param>
         /// <param name="UTMEasting">UTM easting to convert</param>
         /// <param name="UTMNorthing">UTM northing to convert</param>
-        /// <param name="MapWidthPx">Width of map in pixels</param>
-        /// <param name="MapHeightPx">Height of map in pixels</param>
         /// <param name="px">On return set to pixel x coordinate</param>
         /// <param name="py">On return set to pixel y coordinate</param>
         private void UTMToPixel
             (
-            AGDataSet DataSet,
             double UTMEasting,
             double UTMNorthing,
-            int MapWidthPx,
-            int MapHeightPx,
             out int px,
             out int py
             )
@@ -114,8 +116,19 @@ namespace HaulAnalyzer
             px = (int)(X * PxPerMeter);
             py = (int)(Y * PxPerMeter);
 
-            // flip in y because bitmap origin is top left
+            // flip y because bitmap origin is top left
             py = MapHeightPx - py;
+        }
+
+        private void DrawBenchmark
+            (
+            Graphics graph,
+            Brush BrushColor,
+            int px,
+            int py
+            )
+        {
+            graph.FillPolygon(BrushColor, new Point[] { new Point(px, py - 8), new Point(px - 8, py + 8), new Point(px + 8, py + 8) });
         }
     }
 }
