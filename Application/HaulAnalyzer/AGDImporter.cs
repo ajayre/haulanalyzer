@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 using LumenWorks.Framework.IO.Csv;
@@ -10,24 +11,66 @@ namespace HaulAnalyzer
 {
     internal class AGDImporter
     {
+        private bool TerminateRequest;
+        private Thread LoaderThread;
+
+        private bool _Loading;
+        public bool Loading
+        {
+            get { return _Loading; }
+        }
+
+        public AGDataSet DataSet;
+
+        public delegate void ImportCompletedHandler(object sender, AGDataSet DataSet);
+        public ImportCompletedHandler ImportCompleted = null;
+
+        public delegate void ImportErrorHandler(object sender, string Error);
+        public ImportErrorHandler ImportError = null;
+
+        public delegate void ProgressHandler(object sender, int Progress);
+        public ProgressHandler Progress = null;
+
         /// <summary>
         /// Loads in an AGD file
         /// </summary>
         /// <param name="FileName">Path and name of file</param>
         /// <param name="GridSize">Size of grid in meters (from Optisurface)</param>
-        /// <returns>Data set</returns>
-        public AGDataSet Load
+        public void Import
             (
             string FileName,
             double GridSize
             )
         {
-            AGDataSet DataSet = new AGDataSet();
-
             if (!File.Exists(FileName))
             {
                 throw new Exception(String.Format("Input file {0} not found", FileName));
             }
+
+            TerminateRequest = false;
+            _Loading = false;
+            LoaderThread = new Thread(new ParameterizedThreadStart(Importer));
+            LoaderThread.Name = "AGD loader thread";
+            LoaderThread.Start(new Tuple<string, double>(FileName, GridSize));
+        }
+
+        /// <summary>
+        /// Loads the file in a worker thread
+        /// </summary>
+        /// <param name="Parameter">Configuration to use</param>
+        private void Importer
+            (
+            object Parameter
+            )
+        {
+            _Loading = true;
+
+            if (Progress != null) Progress(this, 0);
+
+            string FileName = ((Tuple<string, double>)Parameter).Item1;
+            double GridSize = ((Tuple<string, double>)Parameter).Item2;
+
+            DataSet = new AGDataSet();
 
             char Delimiter = ',';
 
@@ -39,7 +82,10 @@ namespace HaulAnalyzer
                 int FieldCount = Reader.FieldCount;
                 if (FieldCount != 7)
                 {
-                    throw new Exception("File must have seven columns");
+                    _Loading = false;
+                    if (Progress != null) Progress(this, 0);
+                    if (ImportError != null) ImportError(this, "File must have seven columns of data");
+                    return;
                 }
 
                 Reader.SkipEmptyLines = true;
@@ -92,7 +138,9 @@ namespace HaulAnalyzer
 
             FindNeighbors(DataSet.Data, GridSize);
 
-            return DataSet;
+            _Loading = false;
+            if (Progress != null) Progress(this, 100);
+            if (ImportCompleted != null) ImportCompleted(this, DataSet);
         }
 
         /// <summary>
@@ -176,6 +224,9 @@ namespace HaulAnalyzer
             double GridSize
             )
         {
+            int TotalEntries = Entries.Count;
+            int ProcessedEntries = 0;
+
             foreach (AGDEntry Entry in Entries)
             {
                 foreach (AGDEntry SearchEntry in Entries)
@@ -215,6 +266,9 @@ namespace HaulAnalyzer
                         Entry.South = SearchEntry;
                     }
                 }
+
+                ProcessedEntries++;
+                if (Progress != null) Progress(this, (int)((float)ProcessedEntries / (float)TotalEntries * 100.0));
             }
         }
     }

@@ -50,17 +50,68 @@ namespace HaulAnalyzer
                     GridSize = GridSizeFt * 0.3048;
 
                     AGDImporter Importer = new AGDImporter();
-                    DataSet = Importer.Load(ImportFileDialog.FileName, GridSize);
-
-                    CFMap = new CutFillMap(DataSet, 800, 800, GridSize);
-                    Map = CFMap.Update(true);
-                    CutFillMapDisp.Image = Map;
+                    Importer.ImportCompleted += ImporterCompleted;
+                    Importer.ImportError += ImporterError;
+                    Importer.Progress += ImporterProgress;
+                    Importer.Import(ImportFileDialog.FileName, GridSize);
                 }
             }
             catch (Exception Exc)
             {
                 MessageBox.Show(Exc.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+        /// <summary>
+        /// Called when the file import has completed
+        /// </summary>
+        /// <param name="sender">File loader object</param>
+        /// <param name="DataSet">Set of data created</param>
+        private void ImporterCompleted
+            (
+            object sender,
+            AGDataSet DataSet
+            )
+        {
+            this.DataSet = DataSet;
+
+            CFMap = new CutFillMap(DataSet, 800, 800, GridSize);
+            Map = CFMap.Update(true);
+            CutFillMapDisp.Image = Map;
+        }
+
+        /// <summary>
+        /// Called when the file failed to import
+        /// </summary>
+        /// <param name="sender">File importer object</param>
+        /// <param name="ErrorMessage">Error message</param>
+        private void ImporterError
+            (
+            object sender,
+            string ErrorMessage
+            )
+        {
+            MessageBox.Show(ErrorMessage, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+        }
+
+        /// <summary>
+        /// Called when the importer wants to update the progress
+        /// </summary>
+        /// <param name="sender">Importer object</param>
+        /// <param name="Progress">Percentage completed</param>
+        private void ImporterProgress
+            (
+            object sender,
+            int Progress
+            )
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<object, int>(ImporterProgress), sender, Progress );
+                return;
+            }
+
+            ProgressBar.Value = Progress;
         }
 
         private void Haul
