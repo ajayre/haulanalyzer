@@ -107,10 +107,6 @@ namespace HaulAnalyzer
                     string Code           = Reader[5];
                     string Comments       = Reader[6];
 
-                    if (Code.Trim() == "0MB")
-                    {
-                    }
-
                     AGDEntry Entry = Parse(LatStr, LonStr, ExistingEleStr, ProposedEleStr, CutFillStr, Code, Comments, FileName, LineNumber);
                     if (Entry != null)
                     {
@@ -133,6 +129,8 @@ namespace HaulAnalyzer
                                 break;
                         }
                     }
+
+                    Thread.Sleep(0);
                 }
             }
 
@@ -229,8 +227,20 @@ namespace HaulAnalyzer
 
             foreach (AGDEntry Entry in Entries)
             {
-                foreach (AGDEntry SearchEntry in Entries)
+                if (TerminateRequest) return;
+
+                int TargetIndex = Entries.IndexOf(Entry);
+                int StartIndex = TargetIndex - 2000;
+                if (StartIndex < 0) StartIndex = 0;
+                int EndIndex = TargetIndex + 2000;
+                if (EndIndex >= TotalEntries) EndIndex = TotalEntries - 1;
+
+                for (int Index = StartIndex; Index < EndIndex; Index++)
                 {
+                    AGDEntry SearchEntry = Entries[Index];
+
+                    if (TerminateRequest) return;
+
                     if (Entry == SearchEntry) continue;
 
                     if ((SearchEntry.UTMEasting  >  (Entry.UTMEasting  - (GridSize * 1.5))) &&
@@ -265,6 +275,8 @@ namespace HaulAnalyzer
                     {
                         Entry.South = SearchEntry;
                     }
+
+                    if ((Entry.North != null) && (Entry.South != null) && (Entry.East != null) && (Entry.West != null)) break;
                 }
 
                 ProcessedEntries++;

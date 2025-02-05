@@ -83,16 +83,29 @@ namespace HaulAnalyzer
 
             Random Rnd = new Random();
 
+            double TotalMoved = 0;
+
             while (TerminateRequest == false)
             {
-                int Index = Rnd.Next(DataSet.Data.Count);
-                if (DataSet.Data[Index].CutFillHeight < 0)
+                AGDEntry CutSpot = GetCutSpot();
+                AGDEntry FillSpot = GetFillSpot();
+
+                // nothing left to cut
+                if (CutSpot == null) break;
+
+                if (FillSpot != null)
                 {
-                    Cut(DataSet.Data[Index], CutWidthGrid, CutLengthGrid, CutDepth);
+                    Cut(CutSpot, CutWidthGrid, CutLengthGrid, CutDepth);
+                    Fill(FillSpot, CutWidthGrid, CutLengthGrid, CutDepth);
+
+                    TotalMoved += ScraperCut;
                 }
 
                 Thread.Sleep(1);
             }
+
+            // convert total moved to cu yd
+            TotalMoved = TotalMoved / 0.764555;
 
             TerminateRequest = false;
             _Running = false;
@@ -146,42 +159,71 @@ namespace HaulAnalyzer
             AGDEntry CurrY = Entry;
             for (int y = 0; y < CutWidthGrid; y++)
             {
-                CurrY.CutFillHeight -= CutDepth;
+                if (CurrY.CutFillHeight > CutDepth)
+                    CurrY.CutFillHeight -= CutDepth;
+                else
+                    CurrY.CutFillHeight = 0.0;
 
                 AGDEntry CurrX = CurrY;
                 for (int x = 0; x < CutLengthGrid; x++)
                 {
-                    CurrX.CutFillHeight -= CutDepth;
+                    if (CurrX.CutFillHeight > CutDepth)
+                        CurrX.CutFillHeight -= CutDepth;
+                    else
+                        CurrX.CutFillHeight = 0.0;
+
                     if (CurrX.West != null) CurrX = CurrX.West;
                 }
                 if (CurrY.South != null) CurrY = CurrY.South;
             }
         }
 
-        private AGDEntry GetHighPoint
+        private AGDEntry GetCutSpot
             (
-            AGDataSet DataSet
             )
         {
+            AGDEntry HighestEntry = null;
+
             foreach (AGDEntry E in DataSet.Data)
             {
-                if (E.CutFillHeight < 0) return E;
+                if (E.CutFillHeight < 0)
+                {
+                    if (HighestEntry == null)
+                    {
+                        HighestEntry = E;
+                    }
+                    else if (E.CutFillHeight < HighestEntry.CutFillHeight)
+                    {
+                        HighestEntry = E;
+                    }
+                }
             }
 
-            return null;
+            return HighestEntry;
         }
 
-        private AGDEntry GetLowPoint
+        private AGDEntry GetFillSpot
             (
-            AGDataSet DataSet
             )
         {
+            AGDEntry LowestEntry = null;
+
             foreach (AGDEntry E in DataSet.Data)
             {
-                if (E.CutFillHeight > 0) return E;
+                if (E.CutFillHeight > 0)
+                {
+                    if (LowestEntry == null)
+                    {
+                        LowestEntry = E;
+                    }
+                    else if (E.CutFillHeight > LowestEntry.CutFillHeight)
+                    {
+                        LowestEntry = E;
+                    }
+                }
             }
 
-            return null;
+            return LowestEntry;
         }
     }
 }

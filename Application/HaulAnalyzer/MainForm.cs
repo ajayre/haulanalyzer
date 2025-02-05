@@ -114,29 +114,6 @@ namespace HaulAnalyzer
             ProgressBar.Value = Progress;
         }
 
-        private void Haul
-            (
-            AGDataSet DataSet,
-            double GridSize,
-            CutFillMap CFMap
-            )
-        {
-            /*Random Rnd = new Random();
-            int Index;
-            do
-            {
-                Index = Rnd.Next(DataSet.Data.Count);
-            } while (DataSet.Data[Index].CutFillHeight >= 0);
-
-
-            for (int pass = 0; pass < 1000; pass++)
-            {
-                Cut(DataSet.Data[Index], CutWidthGrid, CutLengthGrid, CutDepth);
-                Map = CFMap.Update(false);
-                CutFillMapDisp.Refresh();
-            }*/
-        }
-
         /// <summary>
         /// Called when user clicks on the start/stop button
         /// </summary>
