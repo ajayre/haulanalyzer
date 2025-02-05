@@ -12,6 +12,12 @@ namespace HaulAnalyzer
 {
     public partial class MainForm : Form
     {
+        private HaulPlanner Planner = new HaulPlanner();
+        private Bitmap Map;
+        private CutFillMap CFMap;
+        private AGDataSet DataSet;
+        private double GridSize;
+
         public MainForm()
         {
             InitializeComponent();
@@ -41,63 +47,73 @@ namespace HaulAnalyzer
                     // grid size in feet
                     double GridSizeFt = 5.0;
                     // convert to meters
-                    double GridSize = GridSizeFt * 0.3048;
+                    GridSize = GridSizeFt * 0.3048;
 
                     AGDImporter Importer = new AGDImporter();
-                    AGDataSet DataSet = Importer.Load(ImportFileDialog.FileName, GridSize);
+                    DataSet = Importer.Load(ImportFileDialog.FileName, GridSize);
 
-                    CutFillMap CFMap = new CutFillMap(DataSet, 800, 800, GridSize);
-                    Bitmap Map = CFMap.Update(true);
+                    CFMap = new CutFillMap(DataSet, 800, 800, GridSize);
+                    Map = CFMap.Update(true);
                     CutFillMapDisp.Image = Map;
-
-                    double CutDepth = 0.06096;  // 0.2' in meters
-                    double ScraperWidth = 4.572;  // 15ft in meters
-                    double ScraperCapacity = 20.0; // cu yd
-                    double CutSwell = 1.3;
-
-                    // how much we can cut in one go in cu m
-                    double ScraperCut = (ScraperCapacity / CutSwell) * 0.764555;
-                    // how long each cut is in m
-                    double CutLength = ScraperCut / CutDepth / ScraperWidth;
-
-                    int CutLengthGrid = (int)(CutLength / GridSize);
-                    int CutWidthGrid = (int)(ScraperWidth / GridSize);
-
-                    Random Rnd = new Random();
-                    for (int pass = 0; pass < 10000000; pass++)
-                    {
-                        int Index = Rnd.Next(DataSet.Data.Count);
-                        if (DataSet.Data[Index].CutFillHeight < 0)
-                        {
-                            DataSet.Data[Index].CutFillHeight += ScraperCut;
-
-                            AGDEntry CurrY = DataSet.Data[Index];
-                            for (int y = 0; y < CutWidthGrid; y++)
-                            {
-                                CurrY.CutFillHeight += ScraperCut;
-                                if (CurrY.South != null) CurrY = CurrY.South;
-
-                                AGDEntry CurrX = CurrY;
-                                for (int x = 0; x < CutLengthGrid; x++)
-                                {
-                                    CurrX.CutFillHeight += ScraperCut;
-                                    if (CurrX.West != null) CurrX = CurrX.West;
-                                }
-                            }
-
-                            if (pass % 20 == 0)
-                            {
-                                Map = CFMap.Update(false);
-                                CutFillMapDisp.Refresh();
-                            }
-                        }
-                    }
                 }
             }
             catch (Exception Exc)
             {
                 MessageBox.Show(Exc.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+        private void Haul
+            (
+            AGDataSet DataSet,
+            double GridSize,
+            CutFillMap CFMap
+            )
+        {
+            /*Random Rnd = new Random();
+            int Index;
+            do
+            {
+                Index = Rnd.Next(DataSet.Data.Count);
+            } while (DataSet.Data[Index].CutFillHeight >= 0);
+
+
+            for (int pass = 0; pass < 1000; pass++)
+            {
+                Cut(DataSet.Data[Index], CutWidthGrid, CutLengthGrid, CutDepth);
+                Map = CFMap.Update(false);
+                CutFillMapDisp.Refresh();
+            }*/
+        }
+
+        /// <summary>
+        /// Called when user clicks on the start/stop button
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void StartStopBtn_Click(object sender, EventArgs e)
+        {
+            if (Planner.Running)
+            {
+                Planner.Stop();
+                MapRefreshTimer.Enabled = false;
+            }
+            else
+            {
+                Planner.Start(DataSet, GridSize);
+                MapRefreshTimer.Enabled = true;
+            }
+        }
+
+        /// <summary>
+        /// Called periodically to refresh the cut/fill map
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MapRefreshTimer_Tick(object sender, EventArgs e)
+        {
+            Map = CFMap.Update(false);
+            CutFillMapDisp.Refresh();
         }
     }
 }

@@ -94,7 +94,7 @@ namespace HaulAnalyzer
         {
             StringBuilder DisplayText = new StringBuilder();
 
-            DisplayText.AppendFormat("Oops, an error occurred. Press Ctrl+C to copy this text to the clipboard then paste into an email along with a detailed description of what you were doing to support@esacademy.com.{0}{0}",
+            DisplayText.AppendFormat("Oops, an error occurred. Press Ctrl+C to copy this text to the clipboard then paste into an email along with a detailed description of what you were doing to andy@britishideas.com.{0}{0}",
                 Environment.NewLine);
 
             WriteExceptionDetail(DisplayText, ex);

@@ -64,7 +64,7 @@ namespace HaulAnalyzer
                     else PixelColor = Brushes.DarkRed;
 
                     graph.FillRectangle(PixelColor, (float)(px - 2), (float)(py - 2), 4, 4);
-                    //graph.FillRectangle(PixelColor, (float)(px - 0), (float)(py - 0), 1, 1);
+                    //graph.FillRectangle(PixelColor, (float)(px - 1), (float)(py - 1), 2, 2);
                 }
 
                 if (ShowBenchmarks)

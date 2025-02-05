@@ -28,15 +28,21 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importCutFillFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ImportFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.CutFillMapDisp = new System.Windows.Forms.PictureBox();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.StartStopBtn = new System.Windows.Forms.ToolStripButton();
+            this.MapRefreshTimer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CutFillMapDisp)).BeginInit();
+            this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -66,17 +72,17 @@
             this.importCutFillFileToolStripMenuItem.Text = "&Import Cut/Fill File...";
             this.importCutFillFileToolStripMenuItem.Click += new System.EventHandler(this.importCutFillFileToolStripMenuItem_Click);
             // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(179, 6);
+            // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(179, 6);
             // 
             // ImportFileDialog
             // 
@@ -88,18 +94,45 @@
             this.CutFillMapDisp.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.CutFillMapDisp.Location = new System.Drawing.Point(12, 27);
+            this.CutFillMapDisp.Location = new System.Drawing.Point(12, 52);
             this.CutFillMapDisp.Name = "CutFillMapDisp";
-            this.CutFillMapDisp.Size = new System.Drawing.Size(776, 411);
+            this.CutFillMapDisp.Size = new System.Drawing.Size(776, 386);
             this.CutFillMapDisp.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.CutFillMapDisp.TabIndex = 1;
             this.CutFillMapDisp.TabStop = false;
+            // 
+            // toolStrip1
+            // 
+            this.toolStrip1.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.StartStopBtn});
+            this.toolStrip1.Location = new System.Drawing.Point(0, 24);
+            this.toolStrip1.Name = "toolStrip1";
+            this.toolStrip1.Size = new System.Drawing.Size(800, 25);
+            this.toolStrip1.TabIndex = 2;
+            this.toolStrip1.Text = "toolStrip1";
+            // 
+            // StartStopBtn
+            // 
+            this.StartStopBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.StartStopBtn.Image = ((System.Drawing.Image)(resources.GetObject("StartStopBtn.Image")));
+            this.StartStopBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.StartStopBtn.Name = "StartStopBtn";
+            this.StartStopBtn.Size = new System.Drawing.Size(23, 22);
+            this.StartStopBtn.Text = "Start/stop haul";
+            this.StartStopBtn.Click += new System.EventHandler(this.StartStopBtn_Click);
+            // 
+            // MapRefreshTimer
+            // 
+            this.MapRefreshTimer.Interval = 250;
+            this.MapRefreshTimer.Tick += new System.EventHandler(this.MapRefreshTimer_Tick);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.CutFillMapDisp);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
@@ -108,6 +141,8 @@
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CutFillMapDisp)).EndInit();
+            this.toolStrip1.ResumeLayout(false);
+            this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -122,6 +157,9 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.OpenFileDialog ImportFileDialog;
         private System.Windows.Forms.PictureBox CutFillMapDisp;
+        private System.Windows.Forms.ToolStrip toolStrip1;
+        private System.Windows.Forms.ToolStripButton StartStopBtn;
+        private System.Windows.Forms.Timer MapRefreshTimer;
     }
 }
 

@@ -54,6 +54,7 @@
     <Compile Include="AGDImporter.cs" />
     <Compile Include="CutFillMap.cs" />
     <Compile Include="Geo.cs" />
+    <Compile Include="HaulPlanner.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
