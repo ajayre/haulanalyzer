@@ -45,5 +45,21 @@ namespace HaulAnalyzer
         {
             return string.Format("{0}: {1},{2}: {3}", EntryType, Lat, Lon, CutFillHeight);
         }
+
+        /// <summary>
+        /// Gets the distance between two entries in meters
+        /// </summary>
+        /// <param name="OtherEntry">The entry to measure to</param>
+        /// <returns>Distance in meters</returns>
+        public double DistanceToEntry
+            (
+            AGDEntry OtherEntry
+            )
+        {
+            double X = Math.Abs(OtherEntry.UTMEasting - UTMEasting);
+            double Y = Math.Abs(OtherEntry.UTMNorthing - UTMNorthing);
+
+            return Math.Sqrt((X * X) + (Y * Y));
+        }
     }
 }

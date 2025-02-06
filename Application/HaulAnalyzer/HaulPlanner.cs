@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Drawing;
 
 namespace HaulAnalyzer
 {
@@ -83,7 +84,7 @@ namespace HaulAnalyzer
 
             Random Rnd = new Random();
 
-            double TotalMoved = 0;
+            double TotalCut = 0;
 
             while (TerminateRequest == false)
             {
@@ -95,87 +96,19 @@ namespace HaulAnalyzer
 
                 if (FillSpot != null)
                 {
-                    Cut(CutSpot, CutWidthGrid, CutLengthGrid, CutDepth);
-                    Fill(FillSpot, CutWidthGrid, CutLengthGrid, CutDepth);
-
-                    TotalMoved += ScraperCut;
+                    // fixme - remove x100
+                    TotalCut += DataSet.Cut(CutSpot, CutDepth, CutLength, ScraperWidth, Rnd.Next(359));
+                    DataSet.Fill(FillSpot, CutDepth, CutLength, ScraperWidth, Rnd.Next(359));
                 }
 
                 Thread.Sleep(1);
             }
 
             // convert total moved to cu yd
-            TotalMoved = TotalMoved / 0.764555;
+            TotalCut = TotalCut / 0.764555;
 
             TerminateRequest = false;
             _Running = false;
-        }
-
-        private void Cut
-            (
-            AGDEntry Entry,
-            int CutWidthGrid,
-            int CutLengthGrid,
-            double CutDepth
-            )
-        {
-            AGDEntry CurrY = Entry;
-
-            for (int y = 0; y < CutWidthGrid; y++)
-            {
-                if (CurrY.CutFillHeight != 0)
-                {
-                    if (CurrY.CutFillHeight < CutDepth)
-                        CurrY.CutFillHeight += CutDepth;
-                    else
-                        CurrY.CutFillHeight = 0.0;
-                }
-
-                AGDEntry CurrX = CurrY;
-                for (int x = 0; x < CutLengthGrid; x++)
-                {
-                    if (CurrX.CutFillHeight != 0)
-                    {
-                        if (CurrX.CutFillHeight < CutDepth)
-                            CurrX.CutFillHeight += CutDepth;
-                        else
-                            CurrX.CutFillHeight = 0.0;
-                    }
-
-                    if (CurrX.West != null) CurrX = CurrX.West;
-                }
-                if (CurrY.South != null) CurrY = CurrY.South;
-            }
-        }
-
-        private void Fill
-            (
-            AGDEntry Entry,
-            int CutWidthGrid,
-            int CutLengthGrid,
-            double CutDepth
-            )
-        {
-            AGDEntry CurrY = Entry;
-            for (int y = 0; y < CutWidthGrid; y++)
-            {
-                if (CurrY.CutFillHeight > CutDepth)
-                    CurrY.CutFillHeight -= CutDepth;
-                else
-                    CurrY.CutFillHeight = 0.0;
-
-                AGDEntry CurrX = CurrY;
-                for (int x = 0; x < CutLengthGrid; x++)
-                {
-                    if (CurrX.CutFillHeight > CutDepth)
-                        CurrX.CutFillHeight -= CutDepth;
-                    else
-                        CurrX.CutFillHeight = 0.0;
-
-                    if (CurrX.West != null) CurrX = CurrX.West;
-                }
-                if (CurrY.South != null) CurrY = CurrY.South;
-            }
         }
 
         private AGDEntry GetCutSpot

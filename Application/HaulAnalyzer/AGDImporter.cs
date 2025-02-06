@@ -71,6 +71,7 @@ namespace HaulAnalyzer
             double GridSize = ((Tuple<string, double>)Parameter).Item2;
 
             DataSet = new AGDataSet();
+            DataSet.GridSizeM = GridSize;
 
             char Delimiter = ',';
 
