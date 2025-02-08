@@ -9,7 +9,6 @@ namespace HaulAnalyzer
 {
     internal class CutFillMap
     {
-        private AGDataSet DataSet;
         private int MapWidthPx;
         private int MapHeightPx;
         private Bitmap Map;
@@ -17,13 +16,11 @@ namespace HaulAnalyzer
 
         public CutFillMap
             (
-            AGDataSet DataSet,
             int WidthPx,
             int HeightPx,
             double GridSize
             )
         {
-            this.DataSet = DataSet;
             MapWidthPx = WidthPx;
             MapHeightPx = HeightPx;
             this.GridSize = GridSize;
@@ -38,6 +35,7 @@ namespace HaulAnalyzer
         /// <returns>Bitmap containing map</returns>
         public Bitmap Update
             (
+            AGDataSet DataSet,
             bool ShowBenchmarks
             )
         {
@@ -50,7 +48,7 @@ namespace HaulAnalyzer
 
                 foreach (AGDEntry Entry in DataSet.Data)
                 {
-                    UTMToPixel(Entry.UTMEasting, Entry.UTMNorthing, out px, out py);
+                    UTMToPixel(DataSet, Entry.UTMEasting, Entry.UTMNorthing, out px, out py);
 
                     Brush PixelColor;
                     if (Entry.CutFillHeight >= 2.7 * 0.3048) PixelColor = Brushes.Violet;
@@ -69,12 +67,12 @@ namespace HaulAnalyzer
 
                 if (ShowBenchmarks)
                 {
-                    UTMToPixel(DataSet.MasterBenchmark.UTMEasting, DataSet.MasterBenchmark.UTMNorthing, out px, out py);
+                    UTMToPixel(DataSet, DataSet.MasterBenchmark.UTMEasting, DataSet.MasterBenchmark.UTMNorthing, out px, out py);
                     DrawBenchmark(graph, Brushes.Black, px, py);
 
                     foreach (AGDEntry Benchmark in DataSet.Benchmarks)
                     {
-                        UTMToPixel(Benchmark.UTMEasting, Benchmark.UTMNorthing, out px, out py);
+                        UTMToPixel(DataSet, Benchmark.UTMEasting, Benchmark.UTMNorthing, out px, out py);
                         DrawBenchmark(graph, Brushes.Gray, px, py);
                     }
                 }
@@ -86,12 +84,14 @@ namespace HaulAnalyzer
         /// <summary>
         /// Converts a UTM coordinate into a pixel coordinate
         /// </summary>
+        /// <param name="DataSet">Set of data being used</param>
         /// <param name="UTMEasting">UTM easting to convert</param>
         /// <param name="UTMNorthing">UTM northing to convert</param>
         /// <param name="px">On return set to pixel x coordinate</param>
         /// <param name="py">On return set to pixel y coordinate</param>
         private void UTMToPixel
             (
+            AGDataSet DataSet,
             double UTMEasting,
             double UTMNorthing,
             out int px,

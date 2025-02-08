@@ -38,7 +38,7 @@ namespace HaulAnalyzer
         private double _MinY;
         private double _MaxX;
         private double _MaxY;
- 
+
         public AGDataSet
             (
             )
@@ -51,6 +51,29 @@ namespace HaulAnalyzer
             GridSizeM = 0;
 
             _ExtentsCalculated = false;
+        }
+
+        /// <summary>
+        /// Clones the data set
+        /// </summary>
+        /// <returns>Clone of data set</returns>
+        public AGDataSet Clone
+            (
+            )
+        {
+            AGDataSet NewSet = new AGDataSet();
+            NewSet.MasterBenchmark = MasterBenchmark.Clone();
+            foreach (AGDEntry E in Data) NewSet.Data.Add(E.Clone());
+            foreach (AGDEntry E in Benchmarks) NewSet.Benchmarks.Add(E.Clone());
+            foreach (AGDEntry E in BoundaryPoints) NewSet.BoundaryPoints.Add(E.Clone());
+            NewSet.GridSizeM = GridSizeM;
+            NewSet._ExtentsCalculated = _ExtentsCalculated;
+            NewSet._MinX = _MinX;
+            NewSet._MinY = _MinY;
+            NewSet._MaxX = _MaxX;
+            NewSet._MaxY = _MaxY;
+
+            return NewSet;
         }
 
         /// <summary>
@@ -121,16 +144,16 @@ namespace HaulAnalyzer
             {
                 for (int x = 0; x < XOffset; x++)
                 {
-                    Curr = Curr.East;
-                    if (Curr == null) return null;
+                    if (Curr.East == AGDEntry.INVALID_INDEX) return null;
+                    Curr = Data[Curr.East];
                 }
             }
             else if (XOffset < 0)
             {
                 for (int x = 0; x > XOffset; x--)
                 {
-                    Curr = Curr.West;
-                    if (Curr == null) return null;
+                    if (Curr.West == AGDEntry.INVALID_INDEX) return null;
+                    Curr = Data[Curr.West];
                 }
             }
 
@@ -138,16 +161,16 @@ namespace HaulAnalyzer
             {
                 for (int y = 0; y < YOffset; y++)
                 {
-                    Curr = Curr.North;
-                    if (Curr == null) return null;
+                    if (Curr.North == AGDEntry.INVALID_INDEX) return null;
+                    Curr = Data[Curr.North];
                 }
             }
             else if (YOffset < 0)
             {
                 for (int y = 0; y > YOffset; y--)
                 {
-                    Curr = Curr.South;
-                    if (Curr == null) return null;
+                    if (Curr.South == AGDEntry.INVALID_INDEX) return null;
+                    Curr = Data[Curr.South];
                 }
             }
 
@@ -226,43 +249,9 @@ namespace HaulAnalyzer
             PointD[] Vertices
             )
         {
-            // get extents of polygon
-            double? MaxX = null;
-            double? MaxY = null;
-            double? MinX = null;
-            double? MinY = null;
-
-            foreach (PointD Vertex in Vertices)
-            {
-                if (MaxX == null)
-                    MaxX = Vertex.x;
-                else if (Vertex.x > MaxX)
-                    MaxX = Vertex.x;
-
-                if (MinX == null)
-                    MinX = Vertex.x;
-                else if (Vertex.x < MinX)
-                    MinX = Vertex.x;
-
-                if (MaxY == null)
-                    MaxY = Vertex.y;
-                else if (Vertex.y > MaxY)
-                    MaxY = Vertex.y;
-
-                if (MinY == null)
-                    MinY = Vertex.y;
-                else if (Vertex.y < MinY)
-                    MinY = Vertex.y;
-            }
-
-            double SearchRadius = MaxX.Value - MinX.Value;
-            if ((MaxY.Value - MinY.Value) > SearchRadius) SearchRadius = MaxY.Value - MinY.Value;
-
-            List<AGDEntry> SearchEntries = GetEntriesInRadius(SearchStartEntry, SearchRadius);
-
             List<AGDEntry> FoundEntries = new List<AGDEntry>();
 
-            foreach (AGDEntry E in SearchEntries)
+            foreach (AGDEntry E in Data)
             {
                 PointD CurrPoint = new PointD(E.UTMEasting, E.UTMNorthing);
                 if (IsPointInPolygon(Vertices, CurrPoint))
@@ -295,6 +284,70 @@ namespace HaulAnalyzer
         }
 
         /// <summary>
+        /// Gets entries for a cut
+        /// </summary>
+        /// <param name="Entry">Starting point for cut</param>
+        /// <param name="CutLength">Length of cut in meters</param>
+        /// <param name="CutWidth">Width of cut in meters</param>
+        /// <param name="Angle">Direction of cut in degrees. 0 = E, 45 = NE, 90 = N, etc.</param>
+        /// <returns>Entries inside the cut</returns>
+        public List<AGDEntry> GetCutEntries
+            (
+            AGDEntry Entry,
+            double CutLength,
+            double CutWidth,
+            double Angle
+            )
+        {
+            AGDEntry CurrY = Entry;
+
+            // get bounds for cut
+            PointD TopLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing);
+            PointD TopRight = new PointD(Entry.UTMEasting + CutLength, Entry.UTMNorthing);
+            PointD BottomRight = new PointD(Entry.UTMEasting + CutLength, Entry.UTMNorthing + CutWidth);
+            PointD BottomLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing + CutWidth);
+            TopLeft = RotatePoint(TopLeft, TopLeft, (float)Angle);
+            TopRight = RotatePoint(TopRight, TopLeft, (float)Angle);
+            BottomRight = RotatePoint(BottomRight, TopLeft, (float)Angle);
+            BottomLeft = RotatePoint(BottomLeft, TopLeft, (float)Angle);
+
+            // gets entries inside bounds
+            return GetEntriesInsidePolygon(Entry, new PointD[] { TopLeft, TopRight, BottomRight, BottomLeft });
+        }
+
+        /// <summary>
+        /// Gets entries for a fill
+        /// </summary>
+        /// <param name="Entry">Starting point for fill</param>
+        /// <param name="FillLength">Length of fill in meters</param>
+        /// <param name="FillWidth">Width of fill in meters</param>
+        /// <param name="Angle">Direction of fill in degrees. 0 = E, 45 = NE, 90 = N, etc.</param>
+        /// <returns>Entries in the fill</returns>
+        public List<AGDEntry> GetFillEntries
+            (
+            AGDEntry Entry,
+            double FillLength,
+            double FillWidth,
+            double Angle
+            )
+        {
+            AGDEntry CurrY = Entry;
+
+            // get bounds for fill
+            PointD TopLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing);
+            PointD TopRight = new PointD(Entry.UTMEasting + FillLength, Entry.UTMNorthing);
+            PointD BottomRight = new PointD(Entry.UTMEasting + FillLength, Entry.UTMNorthing + FillWidth);
+            PointD BottomLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing + FillWidth);
+            TopLeft = RotatePoint(TopLeft, TopLeft, (float)Angle);
+            TopRight = RotatePoint(TopRight, TopLeft, (float)Angle);
+            BottomRight = RotatePoint(BottomRight, TopLeft, (float)Angle);
+            BottomLeft = RotatePoint(BottomLeft, TopLeft, (float)Angle);
+
+            // gets entries inside bounds
+            return GetEntriesInsidePolygon(Entry, new PointD[] { TopLeft, TopRight, BottomRight, BottomLeft });
+        }
+
+        /// <summary>
         /// Performs a cut
         /// </summary>
         /// <param name="Entry">Starting point for cut</param>
@@ -309,25 +362,15 @@ namespace HaulAnalyzer
             double CutDepth,
             double CutLength,
             double CutWidth,
-            float Angle
+            double Angle
             )
         {
             AGDEntry CurrY = Entry;
 
             double TotalCut = 0;
 
-            // get bounds for cut
-            PointD TopLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing);
-            PointD TopRight = new PointD(Entry.UTMEasting + CutLength, Entry.UTMNorthing);
-            PointD BottomRight = new PointD(Entry.UTMEasting + CutLength, Entry.UTMNorthing + CutWidth);
-            PointD BottomLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing + CutWidth);
-            TopLeft = RotatePoint(TopLeft, TopLeft, Angle);
-            TopRight = RotatePoint(TopRight, TopLeft, Angle);
-            BottomRight = RotatePoint(BottomRight, TopLeft, Angle);
-            BottomLeft = RotatePoint(BottomLeft, TopLeft, Angle);
+            List<AGDEntry> Entries = GetCutEntries(Entry, CutLength, CutWidth, Angle);
 
-            // gets entries inside bound and cut them
-            List<AGDEntry> Entries = GetEntriesInsidePolygon(Entry, new PointD[] { TopLeft, TopRight, BottomRight, BottomLeft });
             foreach (AGDEntry E in Entries)
             {
                 if (E.CutFillHeight >= 0)
@@ -364,23 +407,13 @@ namespace HaulAnalyzer
             double FillDepth,
             double FillLength,
             double FillWidth,
-            float Angle
+            double Angle
             )
         {
             AGDEntry CurrY = Entry;
 
-            // get bounds for cut
-            PointD TopLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing);
-            PointD TopRight = new PointD(Entry.UTMEasting + FillLength, Entry.UTMNorthing);
-            PointD BottomRight = new PointD(Entry.UTMEasting + FillLength, Entry.UTMNorthing + FillWidth);
-            PointD BottomLeft = new PointD(Entry.UTMEasting, Entry.UTMNorthing + FillWidth);
-            TopLeft = RotatePoint(TopLeft, TopLeft, Angle);
-            TopRight = RotatePoint(TopRight, TopLeft, Angle);
-            BottomRight = RotatePoint(BottomRight, TopLeft, Angle);
-            BottomLeft = RotatePoint(BottomLeft, TopLeft, Angle);
+            List<AGDEntry> Entries = GetFillEntries(Entry, FillLength, FillWidth, Angle);
 
-            // gets entries inside bound and cut them
-            List<AGDEntry> Entries = GetEntriesInsidePolygon(Entry, new PointD[] { TopLeft, TopRight, BottomRight, BottomLeft });
             foreach (AGDEntry E in Entries)
             {
                 if (E.CutFillHeight <= 0)

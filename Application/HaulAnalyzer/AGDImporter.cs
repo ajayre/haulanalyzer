@@ -75,6 +75,8 @@ namespace HaulAnalyzer
 
             char Delimiter = ',';
 
+            int CurrentIndex = 0;
+
             // read csv file
             int LineNumber = 0;
             using (CsvReader Reader = new CsvReader(new StreamReader(new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), true, Delimiter))
@@ -126,6 +128,7 @@ namespace HaulAnalyzer
                                 break;
 
                             case AGDEntryType.GridPoint:
+                                Entry.Index = CurrentIndex++;
                                 DataSet.Data.Add(Entry);
                                 break;
                         }
@@ -250,7 +253,7 @@ namespace HaulAnalyzer
                         (SearchEntry.UTMNorthing <= (Entry.UTMNorthing + (GridSize * 0.5)))
                         )
                     {
-                        Entry.East = SearchEntry;
+                        Entry.East = SearchEntry.Index;
                     }
                     else if ((SearchEntry.UTMEasting  <= (Entry.UTMEasting  + (GridSize * 1.5))) &&
                              (SearchEntry.UTMEasting  >  (Entry.UTMEasting  + (GridSize * 0.5))) &&
@@ -258,7 +261,7 @@ namespace HaulAnalyzer
                              (SearchEntry.UTMNorthing <= (Entry.UTMNorthing + (GridSize * 0.5)))
                             )
                     {
-                        Entry.West = SearchEntry;
+                        Entry.West = SearchEntry.Index;
                     }
                     else if ((SearchEntry.UTMEasting  >  (Entry.UTMEasting  - (GridSize * 0.5))) &&
                              (SearchEntry.UTMEasting  <= (Entry.UTMEasting  + (GridSize * 0.5))) &&
@@ -266,7 +269,7 @@ namespace HaulAnalyzer
                              (SearchEntry.UTMNorthing <= (Entry.UTMNorthing + (GridSize * 1.5)))
                             )
                     {
-                        Entry.North = SearchEntry;
+                        Entry.North = SearchEntry.Index;
                     }
                     else if ((SearchEntry.UTMEasting  >  (Entry.UTMEasting  - (GridSize * 0.5))) &&
                              (SearchEntry.UTMEasting  <= (Entry.UTMEasting  + (GridSize * 0.5))) &&
@@ -274,10 +277,13 @@ namespace HaulAnalyzer
                              (SearchEntry.UTMNorthing <= (Entry.UTMNorthing - (GridSize * 0.5)))
                             )
                     {
-                        Entry.South = SearchEntry;
+                        Entry.South = SearchEntry.Index;
                     }
 
-                    if ((Entry.North != null) && (Entry.South != null) && (Entry.East != null) && (Entry.West != null)) break;
+                    if ((Entry.North != AGDEntry.INVALID_INDEX) &&
+                        (Entry.South != AGDEntry.INVALID_INDEX) &&
+                        (Entry.East  != AGDEntry.INVALID_INDEX) &&
+                        (Entry.West  != AGDEntry.INVALID_INDEX)) break;
                 }
 
                 ProcessedEntries++;

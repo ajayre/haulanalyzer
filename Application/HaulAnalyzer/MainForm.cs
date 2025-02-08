@@ -17,6 +17,7 @@ namespace HaulAnalyzer
         private CutFillMap CFMap;
         private AGDataSet DataSet;
         private double GridSize;
+        AGDataSet DataSetCopy;
 
         public MainForm()
         {
@@ -75,8 +76,8 @@ namespace HaulAnalyzer
         {
             this.DataSet = DataSet;
 
-            CFMap = new CutFillMap(DataSet, 800, 800, GridSize);
-            Map = CFMap.Update(true);
+            CFMap = new CutFillMap(800, 800, GridSize);
+            Map = CFMap.Update(DataSet, true);
             CutFillMapDisp.Image = Map;
         }
 
@@ -128,7 +129,8 @@ namespace HaulAnalyzer
             }
             else
             {
-                Planner.Start(DataSet, GridSize);
+                DataSetCopy = DataSet.Clone();
+                Planner.Start(DataSetCopy, GridSize);
                 MapRefreshTimer.Enabled = true;
             }
         }
@@ -140,8 +142,19 @@ namespace HaulAnalyzer
         /// <param name="e"></param>
         private void MapRefreshTimer_Tick(object sender, EventArgs e)
         {
-            Map = CFMap.Update(false);
+            Map = CFMap.Update(DataSetCopy, false);
             CutFillMapDisp.Refresh();
+        }
+
+        /// <summary>
+        /// Called when main form is closing
+        /// Stops the planner if it is running
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (Planner.Running) Planner.Stop();
         }
     }
 }
