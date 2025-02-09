@@ -41,15 +41,21 @@ namespace HaulAnalyzer
         private AGDataSet DataSet;
         private double GridSize;
         private Random Rnd;
+        private List<Region> Regions;
 
-        private List<PointD> Region1;
-        private List<PointD> Region2;
-     
         public HaulPlanner
             (
             )
         {
             Rnd = new Random();
+        }
+
+        public void SetRegions
+            (
+            List<Region> Regions
+            )
+        {
+            this.Regions = Regions;
         }
 
         /// <summary>
@@ -68,67 +74,6 @@ namespace HaulAnalyzer
 
             this.DataSet = DataSet;
             this.GridSize = GridSize;
-
-            // these numbers are obtained by creating a breakline around the region in
-            // optisurface and then exporting the table of values
-            // these are in ft
-            Region1 = new List<PointD>();
-            Region1.Add(new PointD(747.543, 393.085));
-            Region1.Add(new PointD(717.257, 355.515));
-            Region1.Add(new PointD(696.172, 353.982));
-            Region1.Add(new PointD(641.733, 296.859));
-            Region1.Add(new PointD(619.498, 292.642));
-            Region1.Add(new PointD(610.297, 279.991));
-            Region1.Add(new PointD(591.128, 277.307));
-            Region1.Add(new PointD(580.394, 263.889));
-            Region1.Add(new PointD(560.458, 263.889));
-            Region1.Add(new PointD(552.408, 250.855));
-            Region1.Add(new PointD(514.071, 248.171));
-            Region1.Add(new PointD(494.519, 224.785));
-            Region1.Add(new PointD(455.415, 187.598));
-            Region1.Add(new PointD(-48.427, -317.290));
-            Region1.Add(new PointD(-74.897, -342.105));
-            Region1.Add(new PointD(-75.073, -424.078));
-            Region1.Add(new PointD(-89.447, -429.554));
-            Region1.Add(new PointD(-90.131, -592.452));
-            Region1.Add(new PointD(-112.718, -607.510));
-            Region1.Add(new PointD(-113.402, -647.893));
-            Region1.Add(new PointD(807.154, -651.191));
-            Region1.Add(new PointD(800.025, 392.575));
-            Region1.Add(new PointD(751.964, 392.574));
-
-            Region2 = new List<PointD>();
-            Region2.Add(new PointD(-145.240, 722.625));
-            Region2.Add(new PointD(-141.716, 638.062));
-            Region2.Add(new PointD(-150.876, 520.379));
-            Region2.Add(new PointD(-178.359, 473.869));
-            Region2.Add(new PointD(-284.062, 359.709));
-            Region2.Add(new PointD(-285.471, 327.294));
-            Region2.Add(new PointD(-299.565, 299.811));
-            Region2.Add(new PointD(-333.390, 265.985));
-            Region2.Add(new PointD(-358.758, 257.529));
-            Region2.Add(new PointD(-427.113, 229.341));
-            Region2.Add(new PointD(-456.005, 206.086));
-            Region2.Add(new PointD(-487.546, 190.064));
-            Region2.Add(new PointD(-487.546, 190.064));
-            Region2.Add(new PointD(-591.024, 165.587));
-            Region2.Add(new PointD(-597.967, 407.202));
-            Region2.Add(new PointD(-594.456, 702.786));
-            Region2.Add(new PointD(-145.240, 722.625));
-
-            foreach (PointD P in Region1)
-            {
-                // convert to m and add to master benchmark
-                P.x = (P.x * 0.3048) + DataSet.MasterBenchmark.UTMEasting;
-                P.y = (P.y * 0.3048) + DataSet.MasterBenchmark.UTMNorthing;
-            }
-
-            foreach (PointD P in Region2)
-            {
-                // convert to m and add to master benchmark
-                P.x = (P.x * 0.3048) + DataSet.MasterBenchmark.UTMEasting;
-                P.y = (P.y * 0.3048) + DataSet.MasterBenchmark.UTMNorthing;
-            }
 
             TerminateRequest = false;
             PlannerThread = new Thread(new ThreadStart(Planner));
@@ -355,11 +300,11 @@ namespace HaulAnalyzer
             if (Route.End == null) return null;
 
             // start and end must be inside the same region
-            if (Route.Start.IsInsidePolygon(Region1) && !Route.End.IsInsidePolygon(Region1)) return null;
-            if (!Route.Start.IsInsidePolygon(Region1) && Route.End.IsInsidePolygon(Region1)) return null;
-
-            if (Route.Start.IsInsidePolygon(Region2) && !Route.End.IsInsidePolygon(Region2)) return null;
-            if (!Route.Start.IsInsidePolygon(Region2) && Route.End.IsInsidePolygon(Region2)) return null;
+            foreach (Region Reg in Regions)
+            {
+                if (Route.Start.IsInsidePolygon(Reg.Vertices) && !Route.End.IsInsidePolygon(Reg.Vertices)) return null;
+                if (!Route.Start.IsInsidePolygon(Reg.Vertices) && Route.End.IsInsidePolygon(Reg.Vertices)) return null;
+            }
 
             Route.DistanceM = Route.Start.DistanceToEntry(Route.End);
 

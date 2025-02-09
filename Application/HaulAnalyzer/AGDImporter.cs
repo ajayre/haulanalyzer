@@ -199,10 +199,12 @@ namespace HaulAnalyzer
                 else if (Code == "0MB")
                 {
                     Entry.EntryType = AGDEntryType.MasterBenchmark;
+                    Entry.ExistingEle = double.Parse(ExistingEleStr);
                 }
                 else if (Code.StartsWith("0BM"))
                 {
                     Entry.EntryType = AGDEntryType.Benchmark;
+                    Entry.ExistingEle = double.Parse(ExistingEleStr);
                 }
 
                 Geo.LLtoUTM(Entry.Lat, Entry.Lon, out Entry.UTMNorthing, out Entry.UTMEasting, out Entry.UTMZone);

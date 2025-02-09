@@ -17,11 +17,61 @@ namespace HaulAnalyzer
         private CutFillMap CFMap;
         private AGDataSet DataSet;
         private double GridSize;
-        AGDataSet DataSetCopy;
+        private AGDataSet DataSetCopy;
+        private List<Region> Regions = new List<Region>();
 
         public MainForm()
         {
             InitializeComponent();
+
+            // these numbers are obtained by creating a breakline around the region in
+            // optisurface and then exporting the table of values
+            // these are in ft
+            Region Reg = new Region();
+            Reg.Vertices.Add(new PointD(747.543, 393.085));
+            Reg.Vertices.Add(new PointD(717.257, 355.515));
+            Reg.Vertices.Add(new PointD(696.172, 353.982));
+            Reg.Vertices.Add(new PointD(641.733, 296.859));
+            Reg.Vertices.Add(new PointD(619.498, 292.642));
+            Reg.Vertices.Add(new PointD(610.297, 279.991));
+            Reg.Vertices.Add(new PointD(591.128, 277.307));
+            Reg.Vertices.Add(new PointD(580.394, 263.889));
+            Reg.Vertices.Add(new PointD(560.458, 263.889));
+            Reg.Vertices.Add(new PointD(552.408, 250.855));
+            Reg.Vertices.Add(new PointD(514.071, 248.171));
+            Reg.Vertices.Add(new PointD(494.519, 224.785));
+            Reg.Vertices.Add(new PointD(455.415, 187.598));
+            Reg.Vertices.Add(new PointD(-48.427, -317.290));
+            Reg.Vertices.Add(new PointD(-74.897, -342.105));
+            Reg.Vertices.Add(new PointD(-75.073, -424.078));
+            Reg.Vertices.Add(new PointD(-89.447, -429.554));
+            Reg.Vertices.Add(new PointD(-90.131, -592.452));
+            Reg.Vertices.Add(new PointD(-112.718, -607.510));
+            Reg.Vertices.Add(new PointD(-113.402, -647.893));
+            Reg.Vertices.Add(new PointD(807.154, -651.191));
+            Reg.Vertices.Add(new PointD(800.025, 392.575));
+            Reg.Vertices.Add(new PointD(751.964, 392.574));
+            Regions.Add(Reg);
+
+            Reg = new Region();
+            Reg.Vertices.Add(new PointD(-145.240, 722.625));
+            Reg.Vertices.Add(new PointD(-141.716, 638.062));
+            Reg.Vertices.Add(new PointD(-150.876, 520.379));
+            Reg.Vertices.Add(new PointD(-178.359, 473.869));
+            Reg.Vertices.Add(new PointD(-284.062, 359.709));
+            Reg.Vertices.Add(new PointD(-285.471, 327.294));
+            Reg.Vertices.Add(new PointD(-299.565, 299.811));
+            Reg.Vertices.Add(new PointD(-333.390, 265.985));
+            Reg.Vertices.Add(new PointD(-358.758, 257.529));
+            Reg.Vertices.Add(new PointD(-427.113, 229.341));
+            Reg.Vertices.Add(new PointD(-456.005, 206.086));
+            Reg.Vertices.Add(new PointD(-487.546, 190.064));
+            Reg.Vertices.Add(new PointD(-487.546, 190.064));
+            Reg.Vertices.Add(new PointD(-591.024, 165.587));
+            Reg.Vertices.Add(new PointD(-597.967, 407.202));
+            Reg.Vertices.Add(new PointD(-594.456, 702.786));
+            Reg.Vertices.Add(new PointD(-145.240, 722.625));
+            Regions.Add(Reg);
         }
 
         /// <summary>
@@ -76,7 +126,20 @@ namespace HaulAnalyzer
         {
             this.DataSet = DataSet;
 
+            foreach (Region Reg in Regions)
+            {
+                foreach (PointD P in Reg.Vertices)
+                {
+                    // convert to m and add to master benchmark
+                    P.x = (P.x * 0.3048) + DataSet.MasterBenchmark.UTMEasting;
+                    P.y = (P.y * 0.3048) + DataSet.MasterBenchmark.UTMNorthing;
+                }
+            }
+
+            Planner.SetRegions(Regions);
+
             CFMap = new CutFillMap(800, 800, GridSize);
+            CFMap.SetRegions(Regions);
             Map = CFMap.Update(DataSet, true);
             CutFillMapDisp.Image = Map;
         }
@@ -142,7 +205,7 @@ namespace HaulAnalyzer
         /// <param name="e"></param>
         private void MapRefreshTimer_Tick(object sender, EventArgs e)
         {
-            Map = CFMap.Update(DataSetCopy, false);
+            Map = CFMap.Update(DataSetCopy, true);
             CutFillMapDisp.Refresh();
         }
 
@@ -155,6 +218,21 @@ namespace HaulAnalyzer
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (Planner.Running) Planner.Stop();
+        }
+
+        /// <summary>
+        /// Called when user clicks on the button to save the data as a survey
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ExportSurveyBtn_Click(object sender, EventArgs e)
+        {
+            if (SaveSurveyDialog.ShowDialog() == DialogResult.OK)
+            {
+                SurveyExporter Exporter = new SurveyExporter();
+
+                Exporter.Export(DataSetCopy, SaveSurveyDialog.FileName);
+            }
         }
     }
 }

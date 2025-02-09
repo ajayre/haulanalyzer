@@ -42,6 +42,8 @@
             this.MapRefreshTimer = new System.Windows.Forms.Timer(this.components);
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.ProgressBar = new System.Windows.Forms.ToolStripProgressBar();
+            this.ExportSurveyBtn = new System.Windows.Forms.ToolStripButton();
+            this.SaveSurveyDialog = new System.Windows.Forms.SaveFileDialog();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CutFillMapDisp)).BeginInit();
             this.toolStrip1.SuspendLayout();
@@ -108,7 +110,8 @@
             // 
             this.toolStrip1.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.StartStopBtn});
+            this.StartStopBtn,
+            this.ExportSurveyBtn});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(800, 25);
@@ -145,6 +148,22 @@
             this.ProgressBar.Name = "ProgressBar";
             this.ProgressBar.Size = new System.Drawing.Size(100, 16);
             this.ProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            // 
+            // ExportSurveyBtn
+            // 
+            this.ExportSurveyBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ExportSurveyBtn.Image = ((System.Drawing.Image)(resources.GetObject("ExportSurveyBtn.Image")));
+            this.ExportSurveyBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ExportSurveyBtn.Name = "ExportSurveyBtn";
+            this.ExportSurveyBtn.Size = new System.Drawing.Size(23, 22);
+            this.ExportSurveyBtn.Text = "Export as survey";
+            this.ExportSurveyBtn.Click += new System.EventHandler(this.ExportSurveyBtn_Click);
+            // 
+            // SaveSurveyDialog
+            // 
+            this.SaveSurveyDialog.DefaultExt = "txt";
+            this.SaveSurveyDialog.FileName = "Multiplane";
+            this.SaveSurveyDialog.Filter = "Multiplane Survey Files|*.txt|All Files|*.*";
             // 
             // MainForm
             // 
@@ -185,6 +204,8 @@
         private System.Windows.Forms.Timer MapRefreshTimer;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripProgressBar ProgressBar;
+        private System.Windows.Forms.ToolStripButton ExportSurveyBtn;
+        private System.Windows.Forms.SaveFileDialog SaveSurveyDialog;
     }
 }
 

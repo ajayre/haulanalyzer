@@ -13,6 +13,7 @@ namespace HaulAnalyzer
         private int MapHeightPx;
         private Bitmap Map;
         private double GridSize;
+        private List<Region> Regions;
 
         public CutFillMap
             (
@@ -26,6 +27,14 @@ namespace HaulAnalyzer
             this.GridSize = GridSize;
 
             Map = new Bitmap(MapWidthPx, MapHeightPx);
+        }
+
+        public void SetRegions
+            (
+            List<Region> Regions
+            )
+        {
+            this.Regions = Regions;
         }
 
         /// <summary>
