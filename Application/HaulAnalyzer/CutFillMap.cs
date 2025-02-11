@@ -13,7 +13,6 @@ namespace HaulAnalyzer
         private int MapHeightPx;
         private Bitmap Map;
         private double GridSize;
-        private List<Region> Regions;
 
         public CutFillMap
             (
@@ -29,23 +28,18 @@ namespace HaulAnalyzer
             Map = new Bitmap(MapWidthPx, MapHeightPx);
         }
 
-        public void SetRegions
-            (
-            List<Region> Regions
-            )
-        {
-            this.Regions = Regions;
-        }
-
         /// <summary>
         /// Updates the cut/fill map with the current data
         /// </summary>
+        /// <param name="DataSet">The dataset to render</param>
         /// <param name="ShowBenchmarks">true to display benchmarks</param>
+        /// <param name="ShowRegions">true to show regions</param>
         /// <returns>Bitmap containing map</returns>
         public Bitmap Update
             (
             AGDataSet DataSet,
-            bool ShowBenchmarks
+            bool ShowBenchmarks,
+            bool ShowRegions
             )
         {
             using (Graphics graph = Graphics.FromImage(Map))
@@ -83,6 +77,22 @@ namespace HaulAnalyzer
                     {
                         UTMToPixel(DataSet, Benchmark.UTMEasting, Benchmark.UTMNorthing, out px, out py);
                         DrawBenchmark(graph, Brushes.Gray, px, py);
+                    }
+                }
+
+                if (ShowRegions)
+                {
+                    foreach (Region Reg in DataSet.Regions)
+                    {
+                        List<Point> Points = new List<Point>();
+                        foreach (PointD V in Reg.Vertices)
+                        {
+                            UTMToPixel(DataSet, V.x, V.y, out px, out py);
+
+                            Points.Add(new Point(px, py));
+                        }
+
+                        graph.DrawPolygon(new Pen(Brushes.Black, 5), Points.ToArray());
                     }
                 }
             }

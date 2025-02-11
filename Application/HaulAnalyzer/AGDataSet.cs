@@ -40,6 +40,8 @@ namespace HaulAnalyzer
         private double _MaxX;
         private double _MaxY;
 
+        public List<Region> Regions;
+
         public AGDataSet
             (
             )
@@ -48,6 +50,8 @@ namespace HaulAnalyzer
             MasterBenchmark = new AGDEntry();
             Benchmarks = new List<AGDEntry>();
             BoundaryPoints = new List<AGDEntry>();
+
+            Regions = new List<Region>();
 
             GridSizeM = 0;
 
@@ -74,7 +78,32 @@ namespace HaulAnalyzer
             NewSet._MaxX = _MaxX;
             NewSet._MaxY = _MaxY;
 
+            foreach (Region R in Regions)
+            {
+                NewSet.Regions.Add(R.Clone());
+            }
+
             return NewSet;
+        }
+
+        /// <summary>
+        /// Adds a region to the dataset
+        /// </summary>
+        /// <param name="NewRegion">Region to add</param>
+        public void AddRegion
+            (
+            Region NewRegion
+            )
+        {
+            Regions.Add(NewRegion);
+
+            // post-process region into UTM coordinates
+            foreach (PointD V in NewRegion.Vertices)
+            {
+                // convert to m and add to master benchmark
+                V.x = (V.x * 0.3048) + MasterBenchmark.UTMEasting;
+                V.y = (V.y * 0.3048) + MasterBenchmark.UTMNorthing;
+            }
         }
 
         /// <summary>

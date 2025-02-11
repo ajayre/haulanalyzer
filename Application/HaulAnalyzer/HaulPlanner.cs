@@ -41,21 +41,12 @@ namespace HaulAnalyzer
         private AGDataSet DataSet;
         private double GridSize;
         private Random Rnd;
-        private List<Region> Regions;
 
         public HaulPlanner
             (
             )
         {
             Rnd = new Random();
-        }
-
-        public void SetRegions
-            (
-            List<Region> Regions
-            )
-        {
-            this.Regions = Regions;
         }
 
         /// <summary>
@@ -300,7 +291,7 @@ namespace HaulAnalyzer
             if (Route.End == null) return null;
 
             // start and end must be inside the same region
-            foreach (Region Reg in Regions)
+            foreach (Region Reg in DataSet.Regions)
             {
                 if (Route.Start.IsInsidePolygon(Reg.Vertices) && !Route.End.IsInsidePolygon(Reg.Vertices)) return null;
                 if (!Route.Start.IsInsidePolygon(Reg.Vertices) && Route.End.IsInsidePolygon(Reg.Vertices)) return null;
