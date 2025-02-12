@@ -141,11 +141,15 @@ namespace HaulAnalyzer
                     else if (R.DistanceM > 80) R.Score -= 70;
                     else if (R.DistanceM > 60) R.Score -= 60;
                     else if (R.DistanceM > 40) R.Score -= 50;
-                    else if (R.DistanceM > 20) R.Score -= 40;
-                    else if (R.DistanceM > 10) R.Score -= 20;
+                    else if (R.DistanceM > 20) R.Score -= 20;
+                    else if (R.DistanceM > 10) R.Score -= 5;
 
                     // prefer higher ground for cut
-                    if (R.Start.CutFillHeight < -1.0) R.Score += 90;
+                    if (R.Start.CutFillHeight < -1.6) R.Score += 190;
+                    else if (R.Start.CutFillHeight < -1.5) R.Score += 170;
+                    else if (R.Start.CutFillHeight < -1.4) R.Score += 150;
+                    else if (R.Start.CutFillHeight < -1.2) R.Score += 120;
+                    else if (R.Start.CutFillHeight < -1.0) R.Score += 90;
                     else if (R.Start.CutFillHeight < -0.8) R.Score += 60;
                     else if (R.Start.CutFillHeight < -0.5) R.Score += 50;
                     else if (R.Start.CutFillHeight < -0.3) R.Score += 40;
@@ -153,7 +157,10 @@ namespace HaulAnalyzer
                     else if (R.Start.CutFillHeight < -0.1) R.Score += 10;
 
                     // prefer lower ground for fill
-                    if (R.End.CutFillHeight > 1.0) R.Score += 40;
+                    if (R.End.CutFillHeight > 1.5) R.Score += 120;
+                    else if (R.End.CutFillHeight > 1.4) R.Score += 100;
+                    else if (R.End.CutFillHeight > 1.2) R.Score += 60;
+                    else if (R.End.CutFillHeight > 1.0) R.Score += 40;
                     else if (R.End.CutFillHeight > 0.5) R.Score += 30;
                     else if (R.End.CutFillHeight > 0.3) R.Score += 20;
                     else if (R.End.CutFillHeight > 0.2) R.Score += 10;
